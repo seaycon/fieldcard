@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.2 (2026-11-26), before the pre-registration tag
+
+- **Criterion C counter:** a lead is flagged left-censored when the first water
+  warning falls in the earliest week an alert can occur. Alerts need
+  `persist_weeks` consecutive weeks, so when the window opens with an assessed
+  week the earliest alert is the second week, not the first; 0.2.1 compared
+  with the first assessed week and so almost never set the flag. A, B and the
+  C median are unchanged; only the reported count changes. New column
+  `earliest_possible_alert` in the season summary.
+
 ## 0.2.1 (2026-11-26), before the pre-registration commit
 
 - **Water signal:** a drop of Ks below the usual value for the week now needs a

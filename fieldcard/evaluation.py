@@ -73,8 +73,8 @@ def trl4_criteria(summary: pd.DataFrame, classes: pd.DataFrame, min_weeks: int =
     C        : median days from the first water-deficit warning to the first
                greenness-loss week, drought seasons, field-seasons with both
                events; negative values are kept. Field-seasons whose warning
-               falls in their first assessed week are left-censored (their
-               lead is a lower bound); they stay in C and are counted.
+               falls in the earliest week an alert can occur are left-censored
+               (their lead is a lower bound); they stay in C and are counted.
     """
     cls = classes.set_index("season")["class"]
     s = summary.copy()

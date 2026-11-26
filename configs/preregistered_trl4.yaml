@@ -6,7 +6,7 @@
 # Any change before the run is made in a new, dated commit.
 
 protocol_version: 1
-package_version: "0.2.1"
+package_version: "0.2.2"
 
 study_area:
   name: Bernburg / Magdeburg Boerde, Saxony-Anhalt, Germany (around DLG IPZ)
@@ -90,4 +90,4 @@ criteria:
   A_drought_separation_pp_min: 30   # % flagged in drought seasons minus % flagged in normal seasons
   B_normal_flag_pct_max: 20         # % flagged in normal seasons
   C_median_lead_days_min: 7         # first water-deficit warning -> first greenness-loss week (status 'stress')
-  C_population: drought seasons, field-seasons with both events; negative leads kept; field-seasons whose first water warning falls in their first assessed week are left-censored (lead is a lower bound), kept and counted
+  C_population: drought seasons, field-seasons with both events; negative leads kept; field-seasons whose first water warning falls in the earliest week an alert can occur (first assessed week, or week persist_weeks of the window) are left-censored (lead is a lower bound), kept and counted
