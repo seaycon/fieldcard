@@ -1,0 +1,23 @@
+{
+  "note": "Written after run 2 from the run's own files, because the notebook copy used for run 2 still had the 0.2.2 cells, which do not save the weather sources. The model code was 0.2.3 (commit ccb84fd).",
+  "source_file": "fieldcard_trl4/weather.parquet (Google Drive), parquet metadata PANDAS_ATTRS",
+  "fill_source": {
+    "et0": {
+      "default": 2191
+    },
+    "precip": {
+      "default": 12
+    }
+  },
+  "station_et0_days": 0,
+  "days": 2191,
+  "et0_missing_after_fill": 0,
+  "et0_apr_aug_sum_mm": {
+    "2017": 499.0,
+    "2018": 665.0,
+    "2019": 607.0,
+    "2020": 581.0,
+    "2021": 509.0,
+    "2022": 624.0
+  }
+}

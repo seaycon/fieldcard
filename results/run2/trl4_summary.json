@@ -1,0 +1,168 @@
+{
+  "protocol": "configs/preregistered_trl4.yaml",
+  "protocol_version": 1,
+  "commit": "ccb84fd4d0533e6f49537a1b39261c7f7b8f55f5",
+  "fieldcard_version": "0.2.3",
+  "run_utc": "2026-11-26T11:58:11Z",
+  "season_classes": [
+    {
+      "season": 2017,
+      "rain_mm": 279.1,
+      "ratio": 1.061,
+      "class": "normal"
+    },
+    {
+      "season": 2018,
+      "rain_mm": 167.7,
+      "ratio": 0.638,
+      "class": "drought"
+    },
+    {
+      "season": 2019,
+      "rain_mm": 186.2,
+      "ratio": 0.708,
+      "class": "drought"
+    },
+    {
+      "season": 2020,
+      "rain_mm": 230.3,
+      "ratio": 0.876,
+      "class": "excluded"
+    },
+    {
+      "season": 2021,
+      "rain_mm": 306.8,
+      "ratio": 1.167,
+      "class": "normal"
+    },
+    {
+      "season": 2022,
+      "rain_mm": 140.5,
+      "ratio": 0.534,
+      "class": "drought"
+    }
+  ],
+  "normal_period_mean_mm": 262.9,
+  "seasons_kept": [
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022
+  ],
+  "usable_days_per_season": {
+    "2017": 29,
+    "2018": 57,
+    "2019": 48,
+    "2020": 57,
+    "2021": 51,
+    "2022": 54
+  },
+  "field_seasons": {
+    "total": 360,
+    "by_crop": {
+      "maize": 180,
+      "winter_wheat": 180
+    }
+  },
+  "criteria": {
+    "fields": {
+      "drought_field_seasons": 180,
+      "normal_field_seasons": 120,
+      "excluded_field_seasons": 60
+    },
+    "A_drought_separation_pp": 67.5,
+    "A_pass": true,
+    "pct_flagged_drought": 68.3,
+    "B_normal_flag_pct": 0.8,
+    "B_pass": true,
+    "C_median_lead_days": 0.0,
+    "C_pass": false,
+    "C_counts": {
+      "with_warning_and_loss": 135,
+      "left_censored_lower_bound": 0,
+      "warning_only": 2,
+      "loss_only": 19,
+      "negative_leads": 51
+    },
+    "thresholds": {
+      "A_min_pp": 30,
+      "B_max_pct": 20,
+      "C_min_days": 7,
+      "flagged_min_weeks": 2
+    },
+    "by_season_and_crop": [
+      {
+        "season": 2017,
+        "crop": "maize",
+        "fields": 30,
+        "pct_flagged": 0.0,
+        "median_lead_days": null
+      },
+      {
+        "season": 2017,
+        "crop": "winter_wheat",
+        "fields": 30,
+        "pct_flagged": 0.0,
+        "median_lead_days": null
+      },
+      {
+        "season": 2018,
+        "crop": "maize",
+        "fields": 30,
+        "pct_flagged": 93.3,
+        "median_lead_days": 0.0
+      },
+      {
+        "season": 2018,
+        "crop": "winter_wheat",
+        "fields": 30,
+        "pct_flagged": 90.0,
+        "median_lead_days": 0.0
+      },
+      {
+        "season": 2019,
+        "crop": "maize",
+        "fields": 30,
+        "pct_flagged": 93.3,
+        "median_lead_days": 0.0
+      },
+      {
+        "season": 2019,
+        "crop": "winter_wheat",
+        "fields": 30,
+        "pct_flagged": 0.0,
+        "median_lead_days": null
+      },
+      {
+        "season": 2021,
+        "crop": "maize",
+        "fields": 30,
+        "pct_flagged": 0.0,
+        "median_lead_days": null
+      },
+      {
+        "season": 2021,
+        "crop": "winter_wheat",
+        "fields": 30,
+        "pct_flagged": 3.3,
+        "median_lead_days": 0.0
+      },
+      {
+        "season": 2022,
+        "crop": "maize",
+        "fields": 30,
+        "pct_flagged": 93.3,
+        "median_lead_days": 0.0
+      },
+      {
+        "season": 2022,
+        "crop": "winter_wheat",
+        "fields": 30,
+        "pct_flagged": 40.0,
+        "median_lead_days": 0.0
+      }
+    ]
+  }
+}

@@ -38,6 +38,8 @@ The protocol is fixed in [`configs/preregistered_trl4.yaml`](configs/preregister
 - **Reference:** normal seasons only, never including the season (or, with one normal season, the field) being evaluated.
 - **Criteria:** (A) share of fields flagged with water deficit in drought seasons minus normal seasons ≥ 30 percentage points; (B) share flagged in normal seasons ≤ 20 %; (C) median lead from the first water-deficit warning to visible greenness loss ≥ 7 days. Every count behind A–C is reported, including leads that are left-censored (warning in the earliest week an alert can occur; kept as lower bounds).
 
+**Results:** run 2 (fieldcard 0.2.3): A 67.5 pp (pass), B 0.8 % (pass), C median lead 0 days (fail). Run 1 was invalid (no ET0); both are kept in [`results/`](results/).
+
 The run writes `trl4_summary.json`, which records the commit it used. Results are reported as they come out.
 
 ## Data and attribution
