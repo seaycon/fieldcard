@@ -124,3 +124,14 @@ def test_left_censored_leads_are_kept_and_counted():
     r = trl4_criteria(summ, classes)
     assert r["C_median_lead_days"] == 14.0
     assert r["C_counts"]["left_censored_lower_bound"] == 1 and r["C_counts"]["with_warning_and_loss"] == 3
+
+
+def test_left_censored_flag_uses_earliest_possible_alert_week():
+    # signal from the first week: the warning comes in week 2, the earliest possible -> censored
+    w = fc.attribute(_weekly([0.6] * 4, [-0.6] * 4))
+    s = fc.season_summary(w)
+    assert bool(s["lead_left_censored"].iloc[0]) is True
+    # signal starts in week 3: the warning in week 4 shows real lead -> not censored
+    w = fc.attribute(_weekly([1.0, 1.0, 0.6, 0.6, 0.6], [0.0, 0.0, -0.6, -0.6, -0.6]))
+    s = fc.season_summary(w)
+    assert bool(s["lead_left_censored"].iloc[0]) is False

@@ -36,7 +36,7 @@ The protocol is fixed in [`configs/preregistered_trl4.yaml`](configs/preregister
 - **Area and seasons:** winter-wheat and maize fields ≥ 5 ha around Bernburg (Saxony-Anhalt), seasons 2017–2022.
 - **Season classes:** from station rain only (April–August rain against the 1991–2020 mean): below 80 % drought, from 90 % normal, in between excluded.
 - **Reference:** normal seasons only, never including the season (or, with one normal season, the field) being evaluated.
-- **Criteria:** (A) share of fields flagged with water deficit in drought seasons minus normal seasons ≥ 30 percentage points; (B) share flagged in normal seasons ≤ 20 %; (C) median lead from the first water-deficit warning to visible greenness loss ≥ 7 days. Every count behind A–C is reported, including leads that are left-censored (warning in the first assessed week; kept as lower bounds).
+- **Criteria:** (A) share of fields flagged with water deficit in drought seasons minus normal seasons ≥ 30 percentage points; (B) share flagged in normal seasons ≤ 20 %; (C) median lead from the first water-deficit warning to visible greenness loss ≥ 7 days. Every count behind A–C is reported, including leads that are left-censored (warning in the earliest week an alert can occur; kept as lower bounds).
 
 The run writes `trl4_summary.json`, which records the commit it used. Results are reported as they come out.
 

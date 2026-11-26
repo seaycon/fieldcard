@@ -39,7 +39,7 @@ import json
 import numpy as np
 import pandas as pd
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 CAUSES = ["water_deficit", "heat", "waterlogging", "disease_conducive"]
 
@@ -469,10 +469,14 @@ def season_summary(weekly: pd.DataFrame, p: Params = Params()) -> pd.DataFrame:
         # first week the card names water deficit (early warning or stress)
         first_water = g.loc[is_alert & (g["cause"] == "water_deficit"), "week"].min()
         lead_water = (first_ndvi - first_water).days if pd.notna(first_water) and pd.notna(first_ndvi) else np.nan
-        # a warning in the very first assessed week cannot show lead time: stress was
-        # already present when assessment began (left-censored)
+        # a warning at the earliest week an alert can occur cannot show its full lead
+        # time: the signal was already present when assessment began (left-censored).
+        # An alert needs persist_weeks consecutive weeks, so on a parcel-year whose
+        # first row is assessed the earliest alert is row persist_weeks - 1.
         first_assessed = g.loc[g["status"] != "not_assessed", "week"].min()
-        censored = bool(pd.notna(first_water) and pd.notna(first_assessed) and first_water <= first_assessed)
+        k = min(max(p.persist_weeks - 1, 0), len(g) - 1)
+        earliest_alert = max(first_assessed, g["week"].iloc[k]) if pd.notna(first_assessed) else pd.NaT
+        censored = bool(pd.notna(first_water) and pd.notna(earliest_alert) and first_water <= earliest_alert)
         rows.append({
             "parcel_id": pid, "year": year, "crop": g["crop"].iloc[0],
             "ks_min": g["ks_min"].min(),
@@ -485,6 +489,7 @@ def season_summary(weekly: pd.DataFrame, p: Params = Params()) -> pd.DataFrame:
             "first_greenness_loss": first_ndvi,
             "lead_water_days": lead_water,
             "first_assessed": first_assessed,
+            "earliest_possible_alert": earliest_alert,
             "lead_left_censored": censored,
         })
     return pd.DataFrame(rows)
