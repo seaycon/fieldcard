@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fieldcard"
+version = "0.2.1"
+description = "Explainable weekly field cards that attribute crop stress to a cause and time irrigation"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [{name = "Seaycon Technology Inc."}]
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.22", "pandas>=1.5"]
+
+[project.optional-dependencies]
+data = ["requests", "pyyaml", "pyarrow", "geopandas>=0.14", "pyogrio", "pyproj", "shapely>=2",
+        "rasterio", "xarray", "dask[array]", "odc-stac", "pystac-client", "planetary-computer"]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["fieldcard"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

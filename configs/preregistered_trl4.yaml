@@ -1,0 +1,93 @@
+# FIELDCARD - TRL 4 retrospective validation: pre-registered protocol
+#
+# Every rule, threshold and parameter below is fixed BEFORE any satellite data
+# are read. The notebook reads this file and nothing else for its settings.
+# The results are reported as they come out; no rule is changed afterwards.
+# Any change before the run is made in a new, dated commit.
+
+protocol_version: 1
+package_version: "0.2.1"
+
+study_area:
+  name: Bernburg / Magdeburg Boerde, Saxony-Anhalt, Germany (around DLG IPZ)
+  bbox_lonlat: [11.50, 51.68, 11.95, 51.92]      # west, south, east, north
+
+seasons: [2017, 2018, 2019, 2020, 2021, 2022]    # harvest year; crop maps exist for these years
+min_scenes_per_season: 10                         # seasons with fewer usable acquisition days are dropped
+
+weather:
+  source: DWD Climate Data Center, daily KL, station 00445 Bernburg/Saale (Nord)
+  station_id: "00445"
+  lat: 51.8218
+  lon: 11.7110
+  elevation_m: 85
+  wind_height_m: 10
+  et0: FAO-56 Penman-Monteith from station data; solar radiation from sunshine duration (Angstrom a=0.25, b=0.50)
+  gap_fill: missing station ET0 or rain from ERA5-Land (Open-Meteo archive); remaining gaps up to 5 days linearly interpolated
+
+season_classes:                  # from station rain only; satellite data play no part
+  months: [4, 8]                 # April to August, inclusive
+  normal_period: [1991, 2020]
+  drought_below_ratio: 0.80      # rain / normal-period mean below 0.80 -> drought season
+  normal_at_or_above_ratio: 0.90 # at or above 0.90 -> normal season; between -> excluded
+  fallback: if no season is normal, the wettest non-drought season is used as normal
+
+fields:
+  source: Thuenen Institute national crop-type maps v201, vector (FlatGeobuf), CC BY 4.0
+  zenodo_records: {"2017-2021": "10.5281/zenodo.10619783", "2022": "10.5281/zenodo.10621629"}
+  legend_labels:                 # classes matched on the legend label, printed by the notebook
+    winter_wheat: ["winter wheat"]
+    maize: ["maize"]             # grain and silage maize are one class in these maps
+  class_attribute: null          # null = from the legend, else detected per file from the values (legend codes)
+  class_codes: null              # null = from legend_labels; set only if label matching fails
+  min_area_ha: 5
+  inner_buffer_m: 20             # removes mixed edge pixels
+  n_per_crop_per_season: 30
+  seed: 42                       # numpy default_rng(seed + season), candidates sorted by field id
+
+sentinel2:
+  stac: https://planetarycomputer.microsoft.com/api/stac/v1
+  collection: sentinel-2-l2a
+  period: ["03-01", "09-30"]
+  max_scene_cloud_pct: 80        # scene filter; clouds are then masked per pixel
+  bands: [B04, B05, B08, B11, SCL]
+  crs: EPSG:32632
+  resolution_m: 20
+  valid_scl: [4, 5]              # vegetation, bare soil
+  min_valid_fraction: 0.6        # share of a field's pixels that must be clear
+  offset_rule: add -1000 to digital numbers when the item's s2:processing_baseline >= 04.00 (from item metadata, never from the date)
+  reading: one window around all fields per acquisition day; fields summarised in memory
+
+model:                           # fieldcard.core.Params; anything not listed keeps its package default
+  reference_mode: leave_one_out  # reference from normal seasons only, never including the evaluated season (or field)
+  water_balance_start: 1 January, root zone at field capacity (dr0_mm = 0)
+  common:
+    taw_mm: 250                  # usable field capacity of the loess black earth (NOSTRADAMUS D2.1, DLG IPZ)
+    p_depletion: 0.55
+    dr0_mm: 0
+    z_alert: -1.0
+    ks_drop_alert: 0.2
+    ks_branch_ndmi_z: -0.5       # a root-zone drop needs at least this canopy-moisture decline (no weather-only alerts)
+    persist_weeks: 2
+    ndvi_active: 0.35
+    cause_min_score: 0.4
+  winter_wheat:
+    kcb_max: 1.10
+    season_start: "04-01"        # assessment window ends before harvest
+    season_end: "06-30"
+    heat_tmax_c: 30.0
+    heat_doy: [135, 180]
+  maize:
+    kcb_max: 1.15
+    season_start: "06-01"
+    season_end: "08-31"
+    heat_tmax_c: 35.0
+    heat_doy: [190, 225]
+
+criteria:
+  flagged_field_season: at least 2 alert weeks attributed to water_deficit inside the crop's assessment window
+  flagged_min_weeks: 2
+  A_drought_separation_pp_min: 30   # % flagged in drought seasons minus % flagged in normal seasons
+  B_normal_flag_pct_max: 20         # % flagged in normal seasons
+  C_median_lead_days_min: 7         # first water-deficit warning -> first greenness-loss week (status 'stress')
+  C_population: drought seasons, field-seasons with both events; negative leads kept; field-seasons whose first water warning falls in their first assessed week are left-censored (lead is a lower bound), kept and counted
