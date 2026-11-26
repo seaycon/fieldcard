@@ -39,8 +39,8 @@ read afterwards from the metadata of the run's weather file.
 
 Lead times of the 135 field-seasons in C: 51 negative, 39 zero, 45 positive
 (all 45 ≥ 7 days); quartiles −7, 0, +7 days. In 106 of 165 field-seasons with a
-water-deficit alert, the first such alert was a week already showing greenness
-loss, i.e. the water label mostly arrives with the visible symptom rather than
+water-deficit alert (all six seasons; 88 of 137 in the drought seasons), the
+first such alert was a week already showing greenness loss, i.e. the water label mostly arrives with the visible symptom rather than
 before it at weekly resolution.
 
 Two features of the pre-registered definitions, raised in an external review
