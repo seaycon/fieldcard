@@ -2,6 +2,7 @@
 from types import SimpleNamespace
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from fieldcard.sources import crop_codes, et0_fao56, parse_sld, s2_offset
@@ -109,3 +110,52 @@ def test_class_column_detected_when_name_differs(tmp_path):
     f = read_thuenen_fields(2018, bbox, None, {"winter_wheat": ["101"], "maize": ["4"]}, path=path,
                             legend_codes=["101", "4", "60"], log=None)
     assert sorted(f["crop"]) == ["maize", "winter_wheat", "winter_wheat"]
+
+
+class _Resp:
+    def __init__(self, daily):
+        self.status_code = 200
+        self._daily = daily
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return {"daily": self._daily}
+
+
+def _station_without_wind(n=10):
+    days = pd.date_range("2018-06-01", periods=n, freq="D")
+    rsk = np.full(n, 1.0)
+    rsk[3] = np.nan
+    return pd.DataFrame({"date": days, "TXK": 25.0, "TNK": 12.0, "UPM": 60.0, "FM": np.nan,
+                         "SDK": 8.0, "RSK": rsk, "TMK": 18.0}), days
+
+
+def test_empty_era5_land_et0_is_filled_from_default_reanalysis(monkeypatch):
+    requests = pytest.importorskip("requests")
+    from fieldcard.sources import weather_table
+    dwd, days = _station_without_wind()
+    t = [d.strftime("%Y-%m-%d") for d in days]
+
+    def fake_get(url, params=None, timeout=None):
+        if params.get("models") == "era5_land":  # ERA5-Land: rain yes, ET0 empty
+            return _Resp({"time": t, "et0_fao_evapotranspiration": [None] * len(t), "precipitation_sum": [0.5] * len(t)})
+        return _Resp({"time": t, "et0_fao_evapotranspiration": [4.2] * len(t), "precipitation_sum": [0.7] * len(t)})
+
+    monkeypatch.setattr(requests, "get", fake_get)
+    wx = weather_table(dwd, 51.82, 11.71, 85, days[0], days[-1], log=None)
+    assert wx["et0"].dtype == "float64" and np.allclose(wx["et0"], 4.2)
+    assert wx.loc[3, "precip"] == 0.5 and wx["filled_precip"].sum() == 1
+    assert wx.attrs["fill_source"] == {"et0": {"default": 10}, "precip": {"era5_land": 1}}
+
+
+def test_weather_gaps_stop_the_run(monkeypatch):
+    requests = pytest.importorskip("requests")
+    from fieldcard.sources import weather_table
+    dwd, days = _station_without_wind(20)
+    t = [d.strftime("%Y-%m-%d") for d in days]
+    monkeypatch.setattr(requests, "get", lambda url, params=None, timeout=None: _Resp(
+        {"time": t, "et0_fao_evapotranspiration": [None] * len(t), "precipitation_sum": [0.5] * len(t)}))
+    with pytest.raises(ValueError, match="still missing"):
+        weather_table(dwd, 51.82, 11.71, 85, days[0], days[-1], log=None)

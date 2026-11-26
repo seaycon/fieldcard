@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.3 (2026-11-26), post-registration fix after run 1
+
+Run 1 (tag `prereg-v1`, 0.2.2) is invalid and kept unchanged in
+`results/run1_invalid_et0/`. Thresholds, rules, fields, seeds and satellite
+processing are unchanged.
+
+- **Weather:** ET0 was missing on every day of run 1. Station 00445 has no wind
+  record for 2017–2022, so no station ET0 could be computed, and ERA5-Land
+  returned empty ET0. Empty ERA5-Land values are now asked again from the
+  Open-Meteo default reanalysis (0.2.2 did this only on an HTTP error). The
+  weather table records how many days each source filled and stops with an
+  error if ET0 or rain is still missing.
+- **Water balance:** refuses missing rain, ET0 or Kcb instead of treating a gap
+  as zero demand.
+- **Notebook:** prints and saves the ET0 sources; the Section 2.4 sentence names
+  them.
+
 ## 0.2.2 (2026-11-26), before the pre-registration tag
 
 - **Criterion C counter:** a lead is flagged left-censored when the first water

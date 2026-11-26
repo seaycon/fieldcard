@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fieldcard"
-version = "0.2.2"
+version = "0.2.3"
 description = "Explainable weekly field cards that attribute crop stress to a cause and time irrigation"
 readme = "README.md"
 license = {text = "Apache-2.0"}

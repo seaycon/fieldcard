@@ -106,43 +106,89 @@ def et0_fao56(tmax, tmin, rh_mean, u_z, sunshine_h, doy, lat_deg, elev_m,
     return np.maximum(et0, 0.0)
 
 
-def open_meteo_daily(lat, lon, start, end, variables=("et0_fao_evapotranspiration", "precipitation_sum")):
-    """ERA5-Land daily values from the Open-Meteo archive (used only to fill gaps)."""
+def open_meteo_daily(lat, lon, start, end, variables=("et0_fao_evapotranspiration", "precipitation_sum"),
+                     model="era5_land"):
+    """Daily reanalysis values from the Open-Meteo archive (used only to fill gaps).
+
+    `model=None` asks for the archive's default reanalysis. The model asked for
+    is stored in `attrs["model"]`.
+    """
     import requests
     base = "https://archive-api.open-meteo.com/v1/archive"
     params = {"latitude": lat, "longitude": lon, "start_date": str(start), "end_date": str(end),
-              "daily": ",".join(variables), "timezone": "Europe/Berlin", "models": "era5_land"}
+              "daily": ",".join(variables), "timezone": "Europe/Berlin"}
+    if model:
+        params["models"] = model
     r = requests.get(base, params=params, timeout=120)
-    if r.status_code != 200:  # model not available for a variable: fall back to the default reanalysis
-        params.pop("models")
-        r = requests.get(base, params=params, timeout=120)
     r.raise_for_status()
-    d = r.json()["daily"]
-    out = pd.DataFrame(d)
+    out = pd.DataFrame(r.json()["daily"])
     out["date"] = pd.to_datetime(out.pop("time"))
+    for v in variables:
+        out[v] = pd.to_numeric(out[v], errors="coerce")
+    out.attrs["model"] = model or "default"
     return out
 
 
+ERA5_VARS = {"et0": "et0_fao_evapotranspiration", "precip": "precipitation_sum"}
+
+
+def _fill_from_reanalysis(out, days, lat, lon, log=print):
+    """Fill missing station ET0 and rain day by day, ERA5-Land first.
+
+    A variable ERA5-Land returns empty for a needed day is asked again from the
+    archive's default reanalysis (0.2.2 fell back only on an HTTP error, so empty
+    ERA5-Land ET0 slipped through). Records which source filled how many days.
+    """
+    need = {c: out[c].isna().to_numpy() for c in ERA5_VARS}
+    source = {c: {} for c in ERA5_VARS}
+    for model in ("era5_land", None):
+        if not any(m.any() for m in need.values()):
+            break
+        try:
+            era = open_meteo_daily(lat, lon, days[0].date(), days[-1].date(), model=model)
+        except Exception as e:  # noqa: BLE001 - a failed source is logged, the next one is tried
+            if log:
+                log(f"  Open-Meteo {model or 'default'} not available: {e}")
+            continue
+        era = era.set_index("date").reindex(days)
+        for c, v in ERA5_VARS.items():
+            vals = era[v].to_numpy(dtype="float64")
+            take = need[c] & ~np.isnan(vals)
+            out.loc[take, c] = vals[take]
+            if take.any():
+                source[c][era.attrs.get("model", model or "default")] = int(take.sum())
+            need[c] = need[c] & ~take
+    return source
+
+
 def weather_table(dwd: pd.DataFrame, lat, lon, elev_m, start, end, wind_height_m=10.0,
-                  fill_from_era5=True) -> pd.DataFrame:
+                  fill_from_era5=True, log=print) -> pd.DataFrame:
     """Daily weather in the form fieldcard.core.run_pipeline expects.
 
     columns: date, precip, et0, tmax, tmean, rh, filled_precip, filled_et0
+    attrs["fill_source"]: days filled per variable and reanalysis model.
+    Stops with an error if ET0 or rain is still missing after the fill and the
+    5-day interpolation, instead of passing gaps on to the water balance.
     """
     days = pd.date_range(start, end, freq="D")
     d = dwd.set_index("date").reindex(days)
     et0 = et0_fao56(d["TXK"], d["TNK"], d["UPM"], d["FM"], d["SDK"], days.dayofyear, lat, elev_m, wind_height_m)
-    out = pd.DataFrame({"date": days, "precip": d["RSK"].to_numpy(), "et0": et0,
-                        "tmax": d["TXK"].to_numpy(), "tmean": d["TMK"].to_numpy(), "rh": d["UPM"].to_numpy()})
+    out = pd.DataFrame({"date": days, "precip": d["RSK"].to_numpy(dtype="float64"),
+                        "et0": np.asarray(et0, dtype="float64"),
+                        "tmax": d["TXK"].to_numpy(dtype="float64"), "tmean": d["TMK"].to_numpy(dtype="float64"),
+                        "rh": d["UPM"].to_numpy(dtype="float64")})
     out["filled_precip"] = out["precip"].isna()
     out["filled_et0"] = out["et0"].isna()
+    source = {c: {} for c in ERA5_VARS}
     if fill_from_era5 and (out["filled_precip"].any() or out["filled_et0"].any()):
-        era = open_meteo_daily(lat, lon, days[0].date(), days[-1].date()).set_index("date").reindex(days)
-        out.loc[out["filled_et0"].to_numpy(), "et0"] = era["et0_fao_evapotranspiration"].to_numpy()[out["filled_et0"].to_numpy()]
-        out.loc[out["filled_precip"].to_numpy(), "precip"] = era["precipitation_sum"].to_numpy()[out["filled_precip"].to_numpy()]
-    for c in ("et0", "tmax", "tmean", "rh"):
+        source = _fill_from_reanalysis(out, days, lat, lon, log)
+    for c in ("et0", "precip", "tmax", "tmean", "rh"):
         out[c] = out[c].interpolate(limit=5, limit_direction="both")
-    out["precip"] = out["precip"].fillna(0.0)
+    missing = {c: int(out[c].isna().sum()) for c in ("et0", "precip")}
+    if any(missing.values()):
+        raise ValueError(f"weather still missing after gap fill (days): {missing}; "
+                         f"fill sources: {source}. Stop and report; do not run the model on gaps.")
+    out.attrs["fill_source"] = source
     return out
 
 

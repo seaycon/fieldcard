@@ -39,7 +39,7 @@ import json
 import numpy as np
 import pandas as pd
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 CAUSES = ["water_deficit", "heat", "waterlogging", "disease_conducive"]
 
@@ -119,6 +119,9 @@ def water_balance(precip, et0, kcb, p: Params = Params()) -> pd.DataFrame:
     precip = np.asarray(precip, dtype="float64")
     et0 = np.asarray(et0, dtype="float64")
     kcb = np.asarray(kcb, dtype="float64")
+    for name, arr in (("precip", precip), ("et0", et0), ("kcb", kcb)):
+        if np.isnan(arr).any():  # a gap would silently freeze the depletion at its last value
+            raise ValueError(f"water_balance: {int(np.isnan(arr).sum())} missing {name} values")
     n = len(precip)
     taw, raw = p.taw_mm, p.p_depletion * p.taw_mm
     dr = np.empty(n)
