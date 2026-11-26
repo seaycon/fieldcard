@@ -43,6 +43,26 @@ water-deficit alert, the first such alert was a week already showing greenness
 loss, i.e. the water label mostly arrives with the visible symptom rather than
 before it at weekly resolution.
 
+Two features of the pre-registered definitions, raised in an external review
+and checked on `trl4_weekly.csv`:
+
+- The C end point is the first week with status "stress", which is set by a
+  persistent NDVI **or** NDRE anomaly, whatever the cause. In 2 of the 51
+  negative leads the first stress week had only an NDRE anomaly; in the other
+  49 NDVI was also at or below −1 z.
+- All 51 negative leads come from an earlier stress week with another cause:
+  heat in 26, unexplained in 25. The water warning then follows later in the
+  season.
+- What A and B test is water-deficit detection against season classes. There
+  is no field-level ground truth for heat, disease, nitrogen or waterlogging,
+  so attribution among those causes is not validated by this run.
+
+Weather gaps: after the fill, temperature is missing on 2020-03-02 and
+2020-03-03 and humidity on 2020-03-02 to 2020-03-05 (station gap longer than
+the 5-day interpolation). These days lie outside every crop window and in the
+excluded season 2020, so they do not touch A, B or C; the code does not yet
+stop on such gaps (ET0 and rain only).
+
 ## Files
 
 - `trl4_summary.json`, `trl4_field_seasons.csv`: outputs of run 2, unchanged.
