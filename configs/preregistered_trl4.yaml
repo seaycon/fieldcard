@@ -6,7 +6,7 @@
 # Any change before the run is made in a new, dated commit.
 
 protocol_version: 1
-package_version: "0.2.2"
+package_version: "0.2.3"   # 0.2.2 at tag prereg-v1; raised only by the post-registration fixes listed at the end
 
 study_area:
   name: Bernburg / Magdeburg Boerde, Saxony-Anhalt, Germany (around DLG IPZ)
@@ -91,3 +91,20 @@ criteria:
   B_normal_flag_pct_max: 20         # % flagged in normal seasons
   C_median_lead_days_min: 7         # first water-deficit warning -> first greenness-loss week (status 'stress')
   C_population: drought seasons, field-seasons with both events; negative leads kept; field-seasons whose first water warning falls in the earliest week an alert can occur (first assessed week, or week persist_weeks of the window) are left-censored (lead is a lower bound), kept and counted
+
+# Implementation defects found after data were read. Thresholds, rules, fields,
+# seeds and satellite processing above are unchanged; `git diff prereg-v1 -- configs/`
+# shows that only package_version and this list changed.
+post_registration_fixes:
+  - version: "0.2.3"
+    date: "2026-11-26"
+    run_affected: "run 1 (commit 7f8ab95, tag prereg-v1): invalid, kept in results/run1_invalid_et0"
+    defect: >-
+      Station 00445 has no wind record for 2017-2022, so no station ET0 could be
+      computed; ERA5-Land returned empty ET0 and the code passed the gaps on; the
+      water balance ran without evaporative demand (Ks = 1 on every day).
+    fix: >-
+      Empty ERA5-Land values are asked again from the Open-Meteo default reanalysis
+      (the fallback the code already used on HTTP errors); the run stops if ET0 or
+      rain is still missing; the water balance refuses missing inputs; the summary
+      records how many days each source filled.

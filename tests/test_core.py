@@ -109,3 +109,11 @@ def test_missing_crop_column_and_short_series():
     weekly = fc.run_pipeline(pd.concat([obs, extra], ignore_index=True), wx)
     assert "X" not in set(weekly["parcel_id"])          # too few observations, skipped
     assert set(weekly["crop"]) == {"unknown"}
+
+
+def test_water_balance_refuses_missing_et0():
+    import pytest
+    et0 = np.full(10, 3.0)
+    et0[4] = np.nan
+    with pytest.raises(ValueError, match="missing et0"):
+        fc.water_balance(np.zeros(10), et0, np.full(10, 0.8))

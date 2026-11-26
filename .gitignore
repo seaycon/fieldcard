@@ -221,3 +221,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# outputs written by local notebook tests; real run outputs live in results/
+/trl4_summary.json
