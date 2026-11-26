@@ -46,6 +46,7 @@ before it at weekly resolution.
 ## Files
 
 - `trl4_summary.json`, `trl4_field_seasons.csv`: outputs of run 2, unchanged.
+- `trl4_weekly.csv`: the weekly cards of run 2 (one row per field and week), converted unchanged from the run's `trl4_weekly.parquet`.
 - `weather_provenance.json`: ET0 and rain sources, read from the run's weather file.
 - `run2_notebook_with_outputs.ipynb`: the executed notebook (Colab user name and
   ID removed from the cell metadata; timestamps kept).
